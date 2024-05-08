@@ -151,7 +151,7 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true'
         uses: actions/upload-artifact@master
         with:
-          name: rustdesk-unsigned-windows-${{ matrix.job.arch }}         
+          name: rustdesk-unsigned-windows-win64         
           path: rustdesk
 
       - name: Sign rustdesk files
@@ -170,7 +170,7 @@ jobs:
           python3 ./generate.py -f ../../rustdesk/ -o . -e ../../rustdesk/rustdesk.exe
           popd
           mv ./target/release/rustdesk-portable-packer.exe ./rustdesk-hickelsoft-win64.exe
-          tar czf rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.tar.gz rustdesk
+          tar czf rustdesk-hickelsoft-win64.tar.gz rustdesk
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
