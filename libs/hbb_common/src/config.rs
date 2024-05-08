@@ -1614,8 +1614,11 @@ impl UserDefaultConfig {
     }
 
     pub fn get(&self, key: &str) -> String {
-        match key {
-            keys::OPTION_VIEW_STYLE => self.get_string(key, "original", vec!["adaptive"]),
+        match key {   
+            keys::OPTION_ZOOM_CURSOR => self.get_string(key, "Y", vec!["N"]),  // HickelSOFT Default "Y", DM 17.01.2024
+            keys::OPTION_SHOW_REMOTE_CURSOR => self.get_string(key, "Y", vec!["N"]),  // HickelSOFT Default "Y", DM 17.01.2024
+            keys::OPTION_SHOW_MONITORS_TOOLBAR => self.get_string(key, "Y", vec!["N"]),  // HickelSOFT Default "Y", DM 17.01.2024
+            keys::OPTION_VIEW_STYLE => self.get_string(key, "adaptive", vec!["original"]),  // HickelSOFT Default "adaptive" (was "original"), DM 17.01.2024
             keys::OPTION_SCROLL_STYLE => self.get_string(key, "scrollauto", vec!["scrollbar"]),
             keys::OPTION_IMAGE_QUALITY => {
                 self.get_string(key, "balanced", vec!["best", "low", "custom"])
@@ -1627,7 +1630,10 @@ impl UserDefaultConfig {
                 self.get_double_string(key, 50.0, 10.0, 0xFFF as f64)
             }
             keys::OPTION_CUSTOM_FPS => self.get_double_string(key, 30.0, 5.0, 120.0),
-            keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["", "N"]),
+            //keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["", "N"]),
+            keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["N"]), // HickelSOFT 18.05.2024 : Not sure, do we need to remove "" in order to make "Y" always default?
+            //keys::OPTION_ENABLE_FILE_TRANSFER => self.get_string(key, "Y", vec!["", "N"]),
+            keys::OPTION_ENABLE_FILE_TRANSFER => self.get_string(key, "Y", vec!["N"]),  // HickelSOFT 18.05.2024 : Not sure, do we need to remove "" in order to make "Y" always default?
             _ => self
                 .get_after(key)
                 .map(|v| v.to_string())

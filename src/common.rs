@@ -1344,6 +1344,7 @@ pub fn check_process(arg: &str, mut same_uid: bool) -> bool {
 }
 
 pub async fn secure_tcp(conn: &mut FramedStream, key: &str) -> ResultType<()> {
+    /*
     let rs_pk = get_rs_pk(key);
     let Some(rs_pk) = rs_pk else {
         bail!("Handshake failed: invalid public key from rendezvous server");
@@ -1377,6 +1378,7 @@ pub async fn secure_tcp(conn: &mut FramedStream, key: &str) -> ResultType<()> {
         }
         _ => {}
     }
+    */
     Ok(())
 }
 
