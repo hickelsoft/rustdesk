@@ -1,5 +1,6 @@
 use crate::{common::do_check_software_update, hbbs_http::create_http_client_with_url};
 use hbb_common::{bail, config, log, ResultType};
+use hbb_common::anyhow::{anyhow, Context};
 use std::{
     io::Write,
     path::PathBuf,
@@ -117,6 +118,54 @@ fn start_auto_update_check_(rx_msg: Receiver<UpdateMsg>) {
     }
 }
 
+pub fn verify_file_hmac(
+    download_url: &str,
+    file_path: PathBuf,
+) -> ResultType<()> {
+    use hbb_common::anyhow::{anyhow, Context};
+    use hbb_common::bail;
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+
+    type HmacSha256 = Hmac<Sha256>;
+
+    // 1. Read file
+    let file_data =
+        std::fs::read(&file_path).context("Failed to read downloaded file")?;
+
+    // 2. Load HMAC
+    let hmac_url = download_url.replace(".exe", ".hmac");
+    let client = reqwest::blocking::Client::new();
+
+    let hmac_hex = client
+        .get(&hmac_url)
+        .send()
+        .context("Failed to download HMAC file")?
+        .text()
+        .context("Failed to read HMAC file")?;
+
+    let expected_hmac =
+        hex::decode(hmac_hex.trim()).context("Invalid HMAC hex")?;
+
+    // 3. Check secret
+    let secret = option_env!("UPDATER_HMAC_SECRET")
+        .ok_or_else(|| anyhow!("UPDATER_HMAC_SECRET not set"))?;
+
+    // 4. Check HMAC
+    let mut mac =
+        HmacSha256::new_from_slice(secret.as_bytes())
+            .context("Invalid HMAC key")?;
+
+    mac.update(&file_data);
+
+    if mac.finalize().into_bytes().as_slice() != expected_hmac {
+        bail!("HMAC mismatch");
+    }
+
+    Ok(())
+}
+
+
 fn check_update(manually: bool) -> ResultType<()> {
     #[cfg(target_os = "windows")]
     let update_msi = crate::platform::is_msi_installed()? && !crate::is_custom_client();
@@ -157,41 +206,29 @@ fn check_update(manually: bool) -> ResultType<()> {
         let Some(file_path) = get_download_file_from_url(&download_url) else {
             bail!("Failed to get the file path from the URL: {}", download_url);
         };
-        let mut is_file_exists = false;
-        if file_path.exists() {
-            // Check if the file size is the same as the server file size
-            // If the file size is the same, we don't need to download it again.
-            let file_size = std::fs::metadata(&file_path)?.len();
-            let response = client.head(&download_url).send()?;
-            if !response.status().is_success() {
-                bail!("Failed to get the file size: {}", response.status());
-            }
-            let total_size = response
-                .headers()
-                .get(reqwest::header::CONTENT_LENGTH)
-                .and_then(|ct_len| ct_len.to_str().ok())
-                .and_then(|ct_len| ct_len.parse::<u64>().ok());
-            let Some(total_size) = total_size else {
-                bail!("Failed to get content length");
-            };
-            if file_size == total_size {
-                is_file_exists = true;
-            } else {
-                std::fs::remove_file(&file_path)?;
-            }
+
+        // Download file
+        let response = client.get(&download_url).send()?;
+        if !response.status().is_success() {
+            bail!(
+                "Failed to download the new version file: {}",
+                response.status()
+            );
         }
-        if !is_file_exists {
-            let response = client.get(&download_url).send()?;
-            if !response.status().is_success() {
-                bail!(
-                    "Failed to download the new version file: {}",
-                    response.status()
-                );
-            }
-            let file_data = response.bytes()?;
-            let mut file = std::fs::File::create(&file_path)?;
-            file.write_all(&file_data)?;
+
+        let file_data = response.bytes()?;
+    
+        // Save file
+        let mut file = std::fs::File::create(&file_path)?;
+        file.write_all(&file_data)?;
+    
+        // Check HMAC
+        if let Err(e) = verify_file_hmac(&download_url, file_path.clone()) {
+            // Delete file on error
+            std::fs::remove_file(&file_path).ok();
+            bail!("HMAC verification failed: {e}");
         }
+
         // We have checked if the `conns` is empty before, but we need to check again.
         // No need to care about the downloaded file here, because it's rare case that the `conns` are empty
         // before the download, but not empty after the download.

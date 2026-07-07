@@ -2964,6 +2964,17 @@ pub fn main_set_common(_key: String, _value: String) {
                     "New version file is downloaded, update begin, {:?}",
                     new_version_file.to_str()
                 );
+                // HMAC-VERIFICATION
+                if let Err(e) = crate::updater::verify_file_hmac(
+                    &_value,
+                    new_version_file.clone(),
+                ) {
+                    log::error!("HMAC verification failed: {}", e);
+                    if let Some(p) = new_version_file.to_str() {
+                        fs::remove_file(p).ok();
+                    }
+                    return;
+                }
                 if let Some(f) = new_version_file.to_str() {
                     // 1.4.0 does not support "--update"
                     // But we can assume that the new version supports it.

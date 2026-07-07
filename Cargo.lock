@@ -7330,6 +7330,7 @@ dependencies = [
  "serde_json 1.0.118",
  "serde_repr",
  "sha2",
+ "hmac",
  "shared_memory",
  "shutdown_hooks",
  "softbuffer",

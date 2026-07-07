@@ -67,7 +67,10 @@ lazy_static::lazy_static! {
     static ref STATUS: RwLock<Status> = RwLock::new(Status::load());
     static ref TRUSTED_DEVICES: RwLock<(Vec<TrustedDevice>, bool)> = Default::default();
     static ref ONLINE: Mutex<HashMap<String, i64>> = Default::default();
-    pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("".to_owned());
+    pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new(match option_env!("RENDEZVOUS_SERVER") {
+            Some(key) if !key.is_empty() => key,
+            _ => "",
+    }.to_owned());
     pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = Default::default();
     pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
@@ -118,7 +121,12 @@ const CHARS: &[char] = &[
 ];
 
 pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+pub const PUBLIC_RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+
+pub const RS_PUB_KEY: &str = match option_env!("RS_PUB_KEY") {
+    Some(key) if !key.is_empty() => key,
+    _ => PUBLIC_RS_PUB_KEY,
+};
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -2362,24 +2370,46 @@ impl UserDefaultConfig {
 
     pub fn get(&self, key: &str) -> String {
         match key {
-            #[cfg(any(target_os = "android", target_os = "ios"))]
+
+            // === "SCREEN" TAB IN THE SETTINGS
+            // Note: These settings are saved in RustDesk_default.toml and cannot be set by the API server, since the "strategy options" are saved in RustDesk2.toml.
+
             keys::OPTION_VIEW_STYLE => self.get_string(key, "adaptive", vec!["original"]),
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            keys::OPTION_VIEW_STYLE => self.get_string(key, "original", vec!["adaptive"]),
-            keys::OPTION_SCROLL_STYLE => {
-                self.get_string(key, "scrollauto", vec!["scrolledge", "scrollbar"])
-            }
-            keys::OPTION_IMAGE_QUALITY => {
-                self.get_string(key, "balanced", vec!["best", "low", "custom"])
-            }
-            keys::OPTION_CODEC_PREFERENCE => {
-                self.get_string(key, "auto", vec!["vp8", "vp9", "av1", "h264", "h265"])
-            }
+
+            keys::OPTION_SCROLL_STYLE => self.get_string(key, "scrollauto", vec!["scrolledge", "scrollbar"]),
+            keys::OPTION_EDGE_SCROLL_EDGE_THICKNESS => self.get_num_string(key, 100, 20, 150),
+
+            keys::OPTION_IMAGE_QUALITY => self.get_string(key, "balanced", vec!["best", "low", "custom"]),
             keys::OPTION_CUSTOM_IMAGE_QUALITY => self.get_num_string(key, 50.0, 10.0, 0xFFF as f64),
             keys::OPTION_CUSTOM_FPS => self.get_num_string(key, 30.0, 5.0, 120.0),
-            keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["", "N"]),
-            keys::OPTION_EDGE_SCROLL_EDGE_THICKNESS => self.get_num_string(key, 100, 20, 150),
+
+            keys::OPTION_CODEC_PREFERENCE => self.get_string(key, "auto", vec!["vp8", "vp9", "av1", "h264", "h265"]),
+
             keys::OPTION_TRACKPAD_SPEED => self.get_num_string(key, 100, 10, 1000),
+
+            // "Privacy mode 1/2" is security setting "privacy-mode-impl-key" (in RustDesk2.toml), not a default setting (in RustDesk_default.toml)
+
+            keys::OPTION_VIEW_ONLY => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_SHOW_MONITORS_TOOLBAR => self.get_string(key, "Y", vec!["", "N"]),
+            keys::OPTION_COLLAPSE_TOOLBAR => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_SHOW_REMOTE_CURSOR => self.get_string(key, "Y", vec!["", "N"]),
+            keys::OPTION_FOLLOW_REMOTE_CURSOR => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_FOLLOW_REMOTE_WINDOW => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_ZOOM_CURSOR => self.get_string(key, "", vec!["N","Y"]), // "" means no, and anything else means yes! WTF.
+            keys::OPTION_SHOW_QUALITY_MONITOR => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_DISABLE_AUDIO => self.get_string(key, "Y", vec!["", "N"]),
+            keys::OPTION_ENABLE_FILE_COPY_PASTE => self.get_string(key, "Y", vec!["", "N"]),
+            keys::OPTION_DISABLE_CLIPBOARD => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_LOCK_AFTER_SESSION_END => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_PRIVACY_MODE => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_I444 => self.get_string(key, "", vec!["N","Y"]), // "" means no, and anything else means yes! WTF.
+            keys::OPTION_REVERSE_MOUSE_WHEEL => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_SWAP_LEFT_RIGHT_MOUSE => self.get_string(key, "", vec!["N","Y"]), // "" means no, and anything else means yes! WTF.
+            keys::OPTION_DISPLAYS_AS_INDIVIDUAL_WINDOWS => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_USE_ALL_MY_DISPLAYS_FOR_THE_REMOTE_SESSION => self.get_string(key, "N", vec!["Y"]),
+            keys::OPTION_TERMINAL_PERSISTENT => self.get_string(key, "N", vec!["Y"]),
+
+            // everything else
             _ => self
                 .get_after(key)
                 .map(|v| v.to_string())
