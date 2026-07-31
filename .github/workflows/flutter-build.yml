@@ -206,6 +206,14 @@ jobs:
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           prefix-key: ${{ matrix.job.os }}
+      
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
+      
+      - name: Generate SBOM
+        run: |
+          cargo cyclonedx --workspace --format json
+          cp $(find target -name "*.cdx.json" | head -n1) rustdesk-hickelsoft-win64.sbom.json
 
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
@@ -312,6 +320,7 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./rustdesk-hickelsoft-win64.7z
+            ./rustdesk-hickelsoft-win64.sbom.json
 
   # The fallback for the flutter version, we use Sciter for 32bit Windows.
   build-for-windows-sciter:
@@ -360,6 +369,14 @@ jobs:
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           prefix-key: ${{ matrix.job.os }}-sciter
+
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
+      
+      - name: Generate SBOM
+       run: |
+          cargo cyclonedx --workspace --format json
+          cp $(find target -name "*.cdx.json" | head -n1) rustdesk-hickelsoft-win32.sbom.json
 
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
@@ -432,3 +449,5 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./rustdesk-hickelsoft-win32.7z
+            ./rustdesk-hickelsoft-win32.sbom.json
+        
