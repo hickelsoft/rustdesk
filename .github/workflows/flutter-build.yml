@@ -208,7 +208,7 @@ jobs:
           prefix-key: ${{ matrix.job.os }}
       
       - name: Install cargo-cyclonedx
-        run: cargo install cargo-cyclonedx --locked
+        run: cargo install cargo-cyclonedx --version "=0.5.8" --locked
       
       - name: Generate SBOM
         run: |
@@ -372,7 +372,7 @@ jobs:
           prefix-key: ${{ matrix.job.os }}-sciter
 
       - name: Install cargo-cyclonedx
-        run: cargo install cargo-cyclonedx --locked
+        run: cargo install cargo-cyclonedx --version "=0.5.8" --locked
       
       - name: Generate SBOM
         run: |
