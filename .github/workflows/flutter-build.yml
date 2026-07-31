@@ -213,14 +213,16 @@ jobs:
       - name: Generate SBOM
         shell: bash
         run: |
+          set -x
           cargo cyclonedx --manifest-path Cargo.toml --format json
-          SBOM=$(find . -name "bom.json" | head -n1)
-          if [ -z "$SBOM" ]; then
-            echo "SBOM not found!"
-            exit 1
-          fi
-          cp "$SBOM" rustdesk-hickelsoft-win64.sbom.json
-          ls -l rustdesk-hickelsoft-win64.sbom.json
+          echo "========== CURRENT DIR =========="
+          pwd
+          echo "========== REPOSITORY TREE =========="
+          find . -type f | sort
+          echo "========== JSON FILES =========="
+          find . -type f -name "*.json" | sort
+          echo "========== BOM FILES =========="
+          find . -type f \( -name "bom*" -o -name "*.cdx*" -o -name "*sbom*" \) | sort
         
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
@@ -383,8 +385,17 @@ jobs:
       - name: Generate SBOM
         shell: bash
         run: |
+          set -x
           cargo cyclonedx --manifest-path Cargo.toml --format json
-          SBOM=$(find . -name "bom.json" | head -n1)
+          echo "========== CURRENT DIR =========="
+          pwd
+          echo "========== REPOSITORY TREE =========="
+          find . -type f | sort
+          echo "========== JSON FILES =========="
+          find . -type f -name "*.json" | sort
+          echo "========== BOM FILES =========="
+          find . -type f \( -name "bom*" -o -name "*.cdx*" -o -name "*sbom*" \) | sort
+          SBOM=$(find . -name "*.json" | head -n1)
           if [ -z "$SBOM" ]; then
             echo "SBOM not found!"
             exit 1
