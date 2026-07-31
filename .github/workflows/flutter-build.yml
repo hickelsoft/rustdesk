@@ -53,6 +53,32 @@ env:
   UPDATER_HMAC_SECRET: '${{ secrets.UPDATER_HMAC_SECRET }}'
 
 jobs:
+  sbom:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate SBOM
+        run: |
+          syft dir:. \
+            -o cyclonedx-json=rustdesk-hickelsoft.sbom.json
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          tag_name: ${{ env.TAG_NAME }}
+          files: |
+            rustdesk-hickelsoft.sbom.json
+
+            
   generate-bridge:
     uses: ./.github/workflows/bridge.yml
 
@@ -207,23 +233,6 @@ jobs:
         with:
           prefix-key: ${{ matrix.job.os }}
       
-      - name: Install cargo-cyclonedx
-        run: cargo install cargo-cyclonedx --version "=0.5.8" --locked
-      
-      - name: Generate SBOM
-        shell: bash
-        run: |
-          set -x
-          cargo cyclonedx --manifest-path Cargo.toml --format json
-          echo "========== CURRENT DIR =========="
-          pwd
-          echo "========== REPOSITORY TREE =========="
-          find . -type f | sort
-          echo "========== JSON FILES =========="
-          find . -type f -name "*.json" | sort
-          echo "========== BOM FILES =========="
-          find . -type f \( -name "bom*" -o -name "*.cdx*" -o -name "*sbom*" \) | sort
-        
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
         with:
@@ -329,7 +338,6 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./rustdesk-hickelsoft-win64.7z
-            ./rustdesk-hickelsoft-win64.sbom.json
 
   # The fallback for the flutter version, we use Sciter for 32bit Windows.
   build-for-windows-sciter:
@@ -379,30 +387,6 @@ jobs:
         with:
           prefix-key: ${{ matrix.job.os }}-sciter
 
-      - name: Install cargo-cyclonedx
-        run: cargo install cargo-cyclonedx --version "=0.5.8" --locked
-      
-      - name: Generate SBOM
-        shell: bash
-        run: |
-          set -x
-          cargo cyclonedx --manifest-path Cargo.toml --format json
-          echo "========== CURRENT DIR =========="
-          pwd
-          echo "========== REPOSITORY TREE =========="
-          find . -type f | sort
-          echo "========== JSON FILES =========="
-          find . -type f -name "*.json" | sort
-          echo "========== BOM FILES =========="
-          find . -type f \( -name "bom*" -o -name "*.cdx*" -o -name "*sbom*" \) | sort
-          SBOM=$(find . -name "*.json" | head -n1)
-          if [ -z "$SBOM" ]; then
-            echo "SBOM not found!"
-            exit 1
-          fi
-          cp "$SBOM" rustdesk-hickelsoft-win32.sbom.json
-          ls -l rustdesk-hickelsoft-win32.sbom.json
-        
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
         with:
@@ -474,5 +458,4 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           files: |
             ./rustdesk-hickelsoft-win32.7z
-            ./rustdesk-hickelsoft-win32.sbom.json
             
