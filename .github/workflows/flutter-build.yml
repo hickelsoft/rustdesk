@@ -211,10 +211,16 @@ jobs:
         run: cargo install cargo-cyclonedx --version "=0.5.8" --locked
       
       - name: Generate SBOM
-        run: |
-          cargo cyclonedx --workspace --format json
-          cp $(find target -name "*.cdx.json" | head -n1) rustdesk-hickelsoft-win64.sbom.json
         shell: bash
+        run: |
+          cargo cyclonedx --manifest-path Cargo.toml --format json
+          SBOM=$(find . -name "bom.json" | head -n1)
+          if [ -z "$SBOM" ]; then
+            echo "SBOM not found!"
+            exit 1
+          fi
+          cp "$SBOM" rustdesk-hickelsoft-win64.sbom.json
+          ls -l rustdesk-hickelsoft-win64.sbom.json
         
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
@@ -375,10 +381,16 @@ jobs:
         run: cargo install cargo-cyclonedx --version "=0.5.8" --locked
       
       - name: Generate SBOM
-        run: |
-          cargo cyclonedx --workspace --format json
-          cp $(find target -name "*.cdx.json" | head -n1) rustdesk-hickelsoft-win32.sbom.json
         shell: bash
+        run: |
+          cargo cyclonedx --manifest-path Cargo.toml --format json
+          SBOM=$(find . -name "bom.json" | head -n1)
+          if [ -z "$SBOM" ]; then
+            echo "SBOM not found!"
+            exit 1
+          fi
+          cp "$SBOM" rustdesk-hickelsoft-win32.sbom.json
+          ls -l rustdesk-hickelsoft-win32.sbom.json
         
       - name: Setup vcpkg with Github Actions binary cache
         uses: lukka/run-vcpkg@b1a0dd252f06b9e25b3c022a9a03bd7a427fb6a2 # v11
