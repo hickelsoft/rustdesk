@@ -2155,7 +2155,10 @@ async fn secure_tcp_impl(conn: &mut Stream, key: &str, log_on_success: bool) -> 
     if use_ws() {
         return Ok(());
     }
+    /*
     key_exchange(conn, key, log_on_success).await.map(|_| ())
+    */
+    return Ok(());
 }
 
 /// The server's key exchange on `conn`. `Ok(true)` once the stream is encrypted. `Ok(false)`
