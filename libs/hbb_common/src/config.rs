@@ -2916,6 +2916,18 @@ pub mod keys {
     pub const OPTION_PROXY_URL: &str = "proxy-url";
     pub const OPTION_PROXY_USERNAME: &str = "proxy-username";
     pub const OPTION_PROXY_PASSWORD: &str = "proxy-password";
+    
+    pub const OPTION_VIEW_ONLY: &str = "view_only";
+    pub const OPTION_SHOW_MONITORS_TOOLBAR: &str = "show_monitors_toolbar";
+    pub const OPTION_SHOW_REMOTE_CURSOR: &str = "show_remote_cursor";
+    pub const OPTION_FOLLOW_REMOTE_CURSOR: &str = "follow_remote_cursor";
+    pub const OPTION_FOLLOW_REMOTE_WINDOW: &str = "follow_remote_window";
+    pub const OPTION_SHOW_QUALITY_MONITOR: &str = "show_quality_monitor";
+    pub const OPTION_DISABLE_AUDIO: &str = "disable_audio";
+    pub const OPTION_DISABLE_CLIPBOARD: &str = "disable_clipboard";
+    pub const OPTION_LOCK_AFTER_SESSION_END: &str = "lock_after_session_end";
+    pub const OPTION_PRIVACY_MODE: &str = "privacy_mode";
+    pub const OPTION_TERMINAL_PERSISTENT: &str = "terminal-persistent";
 }
 
 pub fn common_load<

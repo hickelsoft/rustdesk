@@ -17,6 +17,5 @@ Changes:
   * Undo https://github.com/rustdesk/rustdesk/pull/13959 (Changed file: [src/common.rs](https://github.com/hickelsoft/rustdesk/blob/hscustom/src/common.rs))
 - Changed default display settings to show remote cursor by default, having adaptive display by default, show monitors in toolbar by default, and disable audio by default (Changed file: [libs/hbb_common/src/config.rs](https://github.com/hickelsoft/rustdesk/blob/hscustom/libs/hbb_common/src/config.rs))
 - Changed this README.md file (Changed file: [README.md](https://github.com/hickelsoft/rustdesk/blob/hscustom/README.md))
-- Token is not transmitted to HBB anymore, since API and HBB are distinct for us, and the token should not be transmitted unencrypted. (Changed file: [src/client.rs](https://github.com/hickelsoft/rustdesk/blob/hscustom/src/client.rs))
-- Disabled `secure_tcp`, because our server does not support `KeyExchange`. (Changed file: [src/common.rs](https://github.com/hickelsoft/rustdesk/blob/hscustom/src/common.rs))
+- Token is not transmitted to HBB anymore, since API and HBB are distinct for us, so we don't send it. (Changed file: [src/client.rs](https://github.com/hickelsoft/rustdesk/blob/hscustom/src/client.rs))
 - Change some German texts for HickelSOFT (Changed file:  [src/lang/de.rs](https://github.com/hickelsoft/rustdesk/blob/hscustom/src/lang/de.rs))
