@@ -1032,7 +1032,14 @@ pub fn check_software_update() {
 pub async fn do_check_software_update() -> hbb_common::ResultType<()> {
     let (_, mut url) =
         hbb_common::version_check_request(hbb_common::VER_TYPE_RUSTDESK_CLIENT.to_string());
-    let api_url = get_api_server("".to_owned(), "".to_owned());
+//    let api_url = get_api_server("".to_owned(), "".to_owned());
+
+    let api_url = get_api_server(
+        Config::get_option("api-server"),
+        Config::get_option("custom-rendezvous-server"),
+    );
+
+    
     if !api_url.is_empty() && !is_public(&api_url) {
         url = format!("{}/version/latest", api_url)
     }    
