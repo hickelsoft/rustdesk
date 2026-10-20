@@ -15,9 +15,9 @@ use base::config::keys;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-const TIME_HEARTBEAT: Duration = Duration::from_secs(15);
+const TIME_HEARTBEAT: Duration = Duration::from_secs(120);
 const UPLOAD_SYSINFO_TIMEOUT: Duration = Duration::from_secs(120);
-const TIME_CONN: Duration = Duration::from_secs(3);
+const TIME_CONN: Duration = Duration::from_secs(15);
 
 #[cfg(not(any(target_os = "ios")))]
 lazy_static::lazy_static! {
